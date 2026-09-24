@@ -23,3 +23,6 @@ def test_parse_message_depth():
 
     assert depth_update.symbol == "BTCUSDT"
     assert depth_update.bids[0].price == Decimal("50000.00")
+    assert depth_update.bids[0].qty == Decimal("1.5")
+    assert depth_update.bids[1].qty == Decimal("0.0")
+    assert depth_update.asks[0].price == Decimal("50010.00")
