@@ -1,6 +1,8 @@
 from decimal import Decimal
 
-from ingestion.parse_depth import parse_depth_update
+from ingestion.parsing import parse_depth_update
+
+
 
 
 def test_parse_message_depth():

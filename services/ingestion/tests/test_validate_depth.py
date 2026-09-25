@@ -1,7 +1,8 @@
+from ingestion.errors import MalformedDepthMessage
+from ingestion.parsing import validate_depth_message
 import pytest 
 from decimal import Decimal
 
-from ingestion.parse_depth import validate_depth_message, MalformedDepthMessage
 
 def valid_message():
     return {
