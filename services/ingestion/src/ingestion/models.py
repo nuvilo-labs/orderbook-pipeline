@@ -7,6 +7,7 @@ class PriceLevel(NamedTuple):
     price: Decimal
     qty: Decimal
 
+
 @dataclass(frozen=True)
 class DepthUpdate:
     symbol: str
