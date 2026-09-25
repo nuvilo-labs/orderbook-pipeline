@@ -23,4 +23,4 @@ def validate_depth_message(message: dict) -> None:
     if not isinstance(message["b"], list):
         raise MalformedDepthMessage("field 'b' must be a list")
     if not isinstance(message["a"], list):
-            raise MalformedDepthMessage("field 'a' must be a list")
+        raise MalformedDepthMessage("field 'a' must be a list")
