@@ -7,7 +7,9 @@ authors = [
     { name = "Maria Lobillo Santos", email = "maria.lobillo.santos@gmail.com" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "websockets>=17.1",
+]
 
 [project.scripts]
 ingestion = "ingestion:main"
