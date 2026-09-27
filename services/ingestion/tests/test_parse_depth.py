@@ -1,9 +1,10 @@
 from decimal import Decimal
 
+import pytest
 from ingestion.parsing import parse_depth_update
 
-
-
+from ingestion.parsing import parse_depth_update
+from ingestion.errors import MalformedDepthMessage
 
 def test_parse_message_depth():
     message = {
@@ -58,3 +59,35 @@ def test_parse_depth_keeps_zero_quantity_levels():
     result = parse_depth_update(message)
 
     assert result.bids[0].qty == Decimal("0")
+
+def test_parse_rejects_non_numeric_price():
+    message = {
+        "e": "depthUpdate", "E": 1699999999999, "s": "BTCUSDT",
+        "U": 157, "u": 160,
+        "b": [["not-a-number", "1.5"]],
+        "a": [],
+    }
+    with pytest.raises(MalformedDepthMessage):
+        parse_depth_update(message)
+
+
+def test_parse_rejects_negative_quantity():
+    message = {
+        "e": "depthUpdate", "E": 1699999999999, "s": "BTCUSDT",
+        "U": 157, "u": 160,
+        "b": [["50000.00", "-1.0"]],
+        "a": [],
+    }
+    with pytest.raises(MalformedDepthMessage):
+        parse_depth_update(message)
+
+
+def test_parse_rejects_non_positive_price():
+    message = {
+        "e": "depthUpdate", "E": 1699999999999, "s": "BTCUSDT",
+        "U": 157, "u": 160,
+        "b": [["0", "1.5"]],
+        "a": [],
+    }
+    with pytest.raises(MalformedDepthMessage):
+        parse_depth_update(message)
