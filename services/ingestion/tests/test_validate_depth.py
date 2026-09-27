@@ -40,3 +40,26 @@ def test_bids_must_be_a_list():
 
     with pytest.raises(MalformedDepthMessage):
         validate_depth_message(message)
+
+def test_level_must_be_a_pair():
+    message = valid_message()
+    message["b"] = [["50000.00"]]  # quantity missing
+
+    with pytest.raises(MalformedDepthMessage):
+        validate_depth_message(message)
+
+
+def test_level_with_extra_elements_is_rejected():
+    message = valid_message()
+    message["b"] = [["50000.00", "1.5", "extra"]]  # three elements
+
+    with pytest.raises(MalformedDepthMessage):
+        validate_depth_message(message)
+
+
+def test_wrong_event_type_is_rejected():
+    message = valid_message()
+    message["e"] = "trade"  # is not depthUpdate
+
+    with pytest.raises(MalformedDepthMessage):
+        validate_depth_message(message)

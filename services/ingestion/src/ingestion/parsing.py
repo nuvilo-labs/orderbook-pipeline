@@ -20,10 +20,18 @@ def validate_depth_message(message: dict) -> None:
         if field not in message:
             raise MalformedDepthMessage(f"missing field '{field}'")
 
-    if not isinstance(message["b"], list):
-        raise MalformedDepthMessage("field 'b' must be a list")
-    if not isinstance(message["a"], list):
-        raise MalformedDepthMessage("field 'a' must be a list")
+    if message["e"] != "depthUpdate":
+        raise MalformedDepthMessage(f"unexpected event type: {message['e']!r}")
+
+    for side in ("b", "a"):
+        levels = message[side]
+        if not isinstance(levels, list):
+            raise MalformedDepthMessage(f"field '{side}' must be a list")
+        for level in levels:
+            if not isinstance(level, list) or len(level) != 2:
+                raise MalformedDepthMessage(
+                    f"level in '{side}' must be a [price, qty] pair, got {level!r}"
+                )
 
 def parse_depth_message(message: dict) -> DepthUpdate:
     validate_depth_message(message)
