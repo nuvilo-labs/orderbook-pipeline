@@ -1,13 +1,17 @@
 import asyncio
 import json
+import time
 
 import websockets
 from aiokafka import AIOKafkaProducer
 
+from ingestion.metrics import compute_rates
 from ingestion.parsing import validate_depth_message
 from ingestion.errors import MalformedDepthMessage
 from ingestion.backoff import backoff_delay
 
+
+REPORT_INTERVAL = 10  # seconds
 SYMBOLS = ["btcusdt", "ethusdt", "bnbusdt", "solusdt", "xrpusdt"]
 KAFKA_BOOTSTRAP = "localhost:9092"
 RAW_TOPIC = "orderbook.raw"
@@ -22,6 +26,11 @@ async def stream_depth() -> None:
     await producer.start()
     url = build_stream_url(SYMBOLS)
     attempt = 0
+
+    message_count = 0
+    byte_count = 0
+    last_report = time.monotonic()
+    
     try:
         while True:
             try:
@@ -38,6 +47,22 @@ async def stream_depth() -> None:
                         key = data["s"].encode()
                         value = raw.encode() if isinstance(raw, str) else raw
                         await producer.send_and_wait(RAW_TOPIC, key=key, value=value)
+
+                        # --- metrics ----
+                        message_count += 1
+                        byte_count += len(value)
+                        now = time.monotonic()
+                        elapsed = now - last_report
+                        if elapsed >= REPORT_INTERVAL:
+                            rates = compute_rates(message_count, byte_count, elapsed)
+                            print(
+                                f"{rates.messages_per_second:.1f} msg/s | "
+                                f"{rates.bytes_per_second/1024:.1f} KB/s | "
+                                f"{rates.bytes_per_day/1_000_000_000:.2f} GB/day"
+                            )
+                            message_count = 0
+                            byte_count = 0
+                            last_report = now
             except (websockets.ConnectionClosed, OSError) as exc:
                 attempt += 1
                 delay = backoff_delay(attempt)
